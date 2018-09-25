@@ -1,0 +1,202 @@
+---
+title: "hw02-MaunishUBC"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Homework 2
+
+```{r warning = FALSE}
+library(gapminder)
+library(tidyverse)
+```
+
+## Smell test the gapminder dataset
+```{r}
+head(gapminder)
+```
+
+
+What is the type of the gapminder object?
+```{r}
+typeof(gapminder)
+```
+
+What is the class of the gapminder object
+```{r}
+class(gapminder)
+```
+
+How manny rows and columns in the object?
+
+dim
+```{r}
+dim(gapminder)
+```
+
+Rows => Observations:
+```{r}
+nrow(gapminder)
+```
+
+Columns => Variables
+```{r}
+ncol(gapminder)
+```
+
+Using nrow() and ncol() instead of dim() allow to use the individual values in a differnt functions.
+
+What is the data type of each variable
+
+Country is:
+```{r}
+typeof(gapminder$country)
+```
+
+Continent is:
+```{r}
+typeof(gapminder$continent)
+```
+
+Year is:
+```{r}
+typeof(gapminder$year)
+```
+
+LifeExp is:
+```{r}
+typeof(gapminder$lifeExp)
+```
+
+Population is:
+```{r}
+typeof(gapminder$pop)
+```
+
+GDP Per capita is:
+```{r}
+typeof(gapminder$gdpPercap)
+```
+
+## Pick up atleast one catagorical and one quantitative variable to explore:
+
+Catagorical variable: Continent
+```{r}
+unique(gapminder$continent)
+```
+
+Quantitative variable: Population
+```{r}
+
+range(gapminder$pop)
+
+```
+
+Spead of Population:
+```{r}
+ggplot(gapminder, aes(x=pop)) + geom_histogram() +
+  scale_x_log10()
+```
+
+Summary of the population
+```{r}
+summary(gapminder$pop)
+```
+
+Population on the basis of each continent
+```{r}
+gapminder %>% 
+  ggplot(aes(x=pop)) + geom_histogram() +
+  scale_x_log10() + facet_wrap(~ continent)
+```
+The faceted plot clearty shows that Asia has the highest population
+
+## Exploring various plot types
+```{r}
+pvsg <- ggplot(gapminder, aes(pop,gdpPercap)) + scale_x_log10() + scale_y_log10()
+pvsg + geom_point()
+```
+
+```{r}
+pvsg + geom_point(aes(colour = continent))
+```
+
+This graph shows the population vs gdpPercap and it is intersting to see that Europe and Americas are richer than Africa and Asia.
+And in Asia, the recipe for a higher GDP is lower population as we can see for the countries on the top left of the plot.
+
+
+Modifying the bin size for population
+```{r}
+ggplot(gapminder, aes(x=pop)) + geom_histogram(bins=50) +
+  scale_x_log10() 
+```
+
+Making a density plot for the histogram:
+```{r}
+ggplot(gapminder, aes(x=pop)) + geom_density() +
+  scale_x_log10() 
+```
+
+
+Breaking population down on a per continent basis:
+```{r}
+pvsc <- ggplot(gapminder, aes(continent,pop)) +
+  scale_y_log10()
+pvsc + geom_boxplot()
+```
+
+Let's make a violin plot:
+```{r}
+pvsc + geom_violin() +
+  geom_jitter(alpha = 0.2)
+```
+
+```{r}
+africa_data <- gapminder %>% filter(continent =='Africa') %>% 
+  select(-continent)
+```
+
+Plot life exp for each country over time
+```{r}
+c  <- ggplot(africa_data, aes(year, lifeExp))
+c + geom_line()
+c + geom_line(aes(group=country))
+
+```
+
+This shows that the life expectancy constantly increases till 1980, after which few countries show a decrease in life exp: 
+Especially one that has a life exp below 30!
+Which country is it?
+```{r}
+africa_data %>% filter(lifeExp < 30)
+```
+
+So, it's Rwanda and this loss in lifeExp was due to the Rwanda genocide!
+
+Did the genocide impact the population and the gdpPercap?
+
+```{r}
+africa_data %>% filter(country == 'Rwanda') %>% 
+  ggplot(aes(year, gdpPercap)) + geom_line()
+```
+
+So the GDP indeed declining prior to the genocide.
+
+What about the total population? 
+
+```{r}
+africa_data %>% filter(country == 'Rwanda') %>% 
+  ggplot(aes(year, pop)) + geom_line()
+```
+
+The population was rapidly increasing and abruptly platued during the genocide and then started increasing again.
+You can read more about the genocide here:
+
+(Vox: Rwanda's genocide — what happened, why it happened, and how it still matters)[https://www.vox.com/2014/4/10/5590646/rwandan-genocide-anniversary]
+
+(BBC: Rwanda genocide: 100 days of slaughter)[https://www.bbc.com/news/world-africa-26875506]
+
+(The New York Times: Rwandan Genocide)[https://www.nytimes.com/topic/destination/rwandan-genocide]
