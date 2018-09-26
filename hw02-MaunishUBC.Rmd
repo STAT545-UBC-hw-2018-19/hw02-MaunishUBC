@@ -7,14 +7,14 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Homework 2
+## Loading gapinder and tidyverse
 
 ```{r warning = FALSE}
 library(gapminder)
 library(tidyverse)
 ```
 
-## Smell test the gapminder dataset
+## Smell testing the gapminder dataset
 ```{r}
 head(gapminder)
 ```
@@ -25,12 +25,12 @@ What is the type of the gapminder object?
 typeof(gapminder)
 ```
 
-What is the class of the gapminder object
+What is the class of the gapminder object?
 ```{r}
 class(gapminder)
 ```
 
-How manny rows and columns in the object?
+How many rows and columns are in gapminder?
 
 dim
 ```{r}
@@ -47,9 +47,10 @@ Columns => Variables
 ncol(gapminder)
 ```
 
-Using nrow() and ncol() instead of dim() allow to use the individual values in a differnt functions.
+Using nrow() and ncol() instead of dim() allows us to use the individual values of in other functions.
+eg.you can count from 1:nrow() in an if or while loop.
 
-What is the data type of each variable
+What is the data type of each variable  in gapminder?
 
 Country is:
 ```{r}
@@ -81,40 +82,60 @@ GDP Per capita is:
 typeof(gapminder$gdpPercap)
 ```
 
-## Pick up atleast one catagorical and one quantitative variable to explore:
+## Exploring individual variables
 
 Catagorical variable: Continent
+Quantitative variable: Population
+
+
+What are the continents listed in the gapminder dataset?
 ```{r}
 unique(gapminder$continent)
 ```
 
-Quantitative variable: Population
+What is the range of population for the countries in the gapminder dataset?
 ```{r}
 
 range(gapminder$pop)
 
 ```
 
-Spead of Population:
+What's the spread of the population in the gapminder dataset?
 ```{r}
 ggplot(gapminder, aes(x=pop)) + geom_histogram() +
   scale_x_log10()
 ```
 
-Summary of the population
+
+As we were recommended to change the bin size for Histogram, let's modify the bin size for population
+```{r}
+ggplot(gapminder, aes(x=pop)) + geom_histogram(bins=50) +
+  scale_x_log10() 
+```
+
+
+Making a density plot for the histogram:
+```{r}
+ggplot(gapminder, aes(x=pop)) + geom_density() +
+  scale_x_log10() 
+```
+
+Can you explore more about the nature of the population distribution?
 ```{r}
 summary(gapminder$pop)
 ```
 
-Population on the basis of each continent
+## Exploring various plot types
+
 ```{r}
 gapminder %>% 
-  ggplot(aes(x=pop)) + geom_histogram() +
+  ggplot(aes(x=pop)) + geom_histogram(bins=50) +
   scale_x_log10() + facet_wrap(~ continent)
 ```
-The faceted plot clearty shows that Asia has the highest population
 
-## Exploring various plot types
+The faceted plot clearly shows that Asia has the highest population
+
+How does the gapminder dataset look when you compare the gdpPercap vs population?
 ```{r}
 pvsg <- ggplot(gapminder, aes(pop,gdpPercap)) + scale_x_log10() + scale_y_log10()
 pvsg + geom_point()
@@ -124,22 +145,14 @@ pvsg + geom_point()
 pvsg + geom_point(aes(colour = continent))
 ```
 
-This graph shows the population vs gdpPercap and it is intersting to see that Europe and Americas are richer than Africa and Asia.
-And in Asia, the recipe for a higher GDP is lower population as we can see for the countries on the top left of the plot.
+Insights:
+
+- This graph shows the population vs gdpPercap for the gapminder dataset and it is intersting to see that Europe and Americas are richer than Africa and Asia.
+
+- Interstingly in Asia, the recipe for a higher GDP is lower population as we can see for the countries on the top left corner of the plot.
 
 
-Modifying the bin size for population
-```{r}
-ggplot(gapminder, aes(x=pop)) + geom_histogram(bins=50) +
-  scale_x_log10() 
-```
-
-Making a density plot for the histogram:
-```{r}
-ggplot(gapminder, aes(x=pop)) + geom_density() +
-  scale_x_log10() 
-```
-
+## Plot of one categorical and one quantitative variable
 
 Breaking population down on a per continent basis:
 ```{r}
@@ -148,13 +161,17 @@ pvsc <- ggplot(gapminder, aes(continent,pop)) +
 pvsc + geom_boxplot()
 ```
 
-Let's make a violin plot:
+Let's make a violin plot and jitter the points:
+
 ```{r}
 pvsc + geom_violin() +
   geom_jitter(alpha = 0.2)
 ```
 
-```{r}
+
+## Use filter, select, pipe and do advanced anaysis: 
+
+```{r warning=FALSE}
 africa_data <- gapminder %>% filter(continent =='Africa') %>% 
   select(-continent)
 ```
@@ -162,41 +179,42 @@ africa_data <- gapminder %>% filter(continent =='Africa') %>%
 Plot life exp for each country over time
 ```{r}
 c  <- ggplot(africa_data, aes(year, lifeExp))
-c + geom_line()
 c + geom_line(aes(group=country))
 
 ```
 
 This shows that the life expectancy constantly increases till 1980, after which few countries show a decrease in life exp: 
-Especially one that has a life exp below 30!
+Especially one that has a life exp below 30 after 1990!
+
 Which country is it?
 ```{r}
 africa_data %>% filter(lifeExp < 30)
 ```
 
-So, it's Rwanda and this loss in lifeExp was due to the Rwanda genocide!
-
-Did the genocide impact the population and the gdpPercap?
+The country is **Rwanda** and what caused this drastic decrease in lifeExp?
+Did this drop in lifeExp correspond to fluctuations in population and the gdpPercap?
 
 ```{r}
 africa_data %>% filter(country == 'Rwanda') %>% 
   ggplot(aes(year, gdpPercap)) + geom_line()
 ```
 
-So the GDP indeed declining prior to the genocide.
+So the GDP was declining since the 1980s and reached a local minimum after 1995.
 
 What about the total population? 
-
 ```{r}
 africa_data %>% filter(country == 'Rwanda') %>% 
   ggplot(aes(year, pop)) + geom_line()
 ```
 
-The population was rapidly increasing and abruptly platued during the genocide and then started increasing again.
-You can read more about the genocide here:
+The population was rapidly increasing and abruptly platued after 1992 till 1997 then started increasing again.
 
-(Vox: Rwanda's genocide — what happened, why it happened, and how it still matters)[https://www.vox.com/2014/4/10/5590646/rwandan-genocide-anniversary]
+These drastic changes in lifeExp, gdpPercap and pop were due to the **Rwanda Genocide** in the 1990s where more than a million people died! 
 
-(BBC: Rwanda genocide: 100 days of slaughter)[https://www.bbc.com/news/world-africa-26875506]
+*You can read more about the genocide here:*
 
-(The New York Times: Rwandan Genocide)[https://www.nytimes.com/topic/destination/rwandan-genocide]
+1. [Vox: Rwanda's genocide — what happened, why it happened, and how it still matters](https://www.vox.com/2014/4/10/5590646/rwandan-genocide-anniversary)
+
+2. [BBC: Rwanda genocide: 100 days of slaughter](https://www.bbc.com/news/world-africa-26875506)
+
+3. [The New York Times: Rwandan Genocide](https://www.nytimes.com/topic/destination/rwandan-genocide)
